@@ -16,10 +16,10 @@
 # coding: utf-8
 
 import requests
-from schema.vcd.v1_5.schemas.vcloud import taskType
-from schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType, DhcpPoolServiceType, GatewayIpsecVpnServiceType, GatewayIpsecVpnEndpointType, GatewayIpsecVpnTunnelType, IpsecVpnSubnetType, IpsecVpnThirdPartyPeerType, DhcpServiceType, GatewayDhcpServiceType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud import taskType
+from pyvcloud.schema.vcd.v1_5.schemas.vcloud.networkType import NatRuleType, GatewayNatRuleType, ReferenceType, NatServiceType, FirewallRuleType, ProtocolsType, DhcpPoolServiceType, GatewayIpsecVpnServiceType, GatewayIpsecVpnEndpointType, GatewayIpsecVpnTunnelType, IpsecVpnSubnetType, IpsecVpnThirdPartyPeerType, DhcpServiceType, GatewayDhcpServiceType
 from iptools import IpRange
-from helper import CommonUtils
+from pyvcloud.helper import CommonUtils
 from xml.etree import ElementTree as ET
 from netaddr import *
 from pyvcloud import _get_logger, Http
@@ -45,9 +45,9 @@ class Gateway(object):
         result = []
         gatewayConfiguration = self.me.get_Configuration()
         gatewayInterfaces = gatewayConfiguration.get_GatewayInterfaces()
-        gatewayInterfaces = filter(
+        gatewayInterfaces = list(filter(
             lambda gatewayInterface: gatewayInterface.get_InterfaceType() == interface_type,
-            gatewayInterfaces.get_GatewayInterface())
+            gatewayInterfaces.get_GatewayInterface()))
         for gatewayInterface in gatewayInterfaces:
             result.append(gatewayInterface)
         return result
@@ -71,9 +71,9 @@ class Gateway(object):
         result = []
         gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
-        natServiceList = filter(
+        natServiceList = list(filter(
             lambda service: service.__class__.__name__ == "NatServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if len(natServiceList) > 0:
             natRules = natServiceList[0].get_NatRule()
             for natRule in natRules:
@@ -91,8 +91,8 @@ class Gateway(object):
                                                  name='EdgeGatewayServiceConfiguration',
                                                  namespacedef='xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ')
         content_type = "application/vnd.vmware.admin.edgeGatewayServiceConfiguration+xml"
-        link = filter(lambda link: link.get_type() ==
-                      content_type, self.me.get_Link())
+        link = list(filter(lambda link: link.get_type() ==
+                      content_type, self.me.get_Link()))
         self.response = Http.post(
             link[0].get_href(),
             data=body,
@@ -184,9 +184,9 @@ class Gateway(object):
         natService = None
         edgeGatewayServiceConfiguration = self.me.get_Configuration(
         ).get_EdgeGatewayServiceConfiguration()
-        natServices = filter(
+        natServices = list(filter(
             lambda service: service.__class__.__name__ == "NatServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if len(natServices) > 0:
             natService = natServices[0]
             natService.set_NatRule(natRules)
@@ -243,9 +243,9 @@ class Gateway(object):
             natService = None
             edgeGatewayServiceConfiguration = self.me.get_Configuration(
             ).get_EdgeGatewayServiceConfiguration()
-            natServices = filter(
+            natServices = list(filter(
                 lambda service: service.__class__.__name__ == "NatServiceType",
-                edgeGatewayServiceConfiguration.get_NetworkService())
+                edgeGatewayServiceConfiguration.get_NetworkService()))
             if len(natServices) > 0:
                 natService = natServices[0]
                 natService.set_NatRule(newRules)
@@ -261,9 +261,9 @@ class Gateway(object):
         natService = None
         edgeGatewayServiceConfiguration = self.me.get_Configuration(
         ).get_EdgeGatewayServiceConfiguration()
-        natServices = filter(
+        natServices = list(filter(
             lambda service: service.__class__.__name__ == "NatServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if len(natServices) > 0:
             natService = natServices[0]
             natService.set_NatRule(newRules)
@@ -278,9 +278,9 @@ class Gateway(object):
         ).get_EdgeGatewayServiceConfiguration()
         if edgeGatewayServiceConfiguration is None:
             return False
-        services = filter(
+        services = list(filter(
             lambda service: service.__class__.__name__ == "FirewallServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         return len(services) == 1 and services[0].get_IsEnabled()
 
     def is_dhcp_enabled(self):
@@ -288,9 +288,9 @@ class Gateway(object):
         ).get_EdgeGatewayServiceConfiguration()
         if edgeGatewayServiceConfiguration is None:
             return False
-        services = filter(
+        services = list(filter(
             lambda service: service.__class__.__name__ == "GatewayDhcpServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         return len(services) == 1 and services[0].get_IsEnabled()
 
     def is_nat_enabled(self):
@@ -298,17 +298,17 @@ class Gateway(object):
         ).get_EdgeGatewayServiceConfiguration()
         if edgeGatewayServiceConfiguration is None:
             return False
-        services = filter(
+        services = list(filter(
             lambda service: service.__class__.__name__ == "NatServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         return len(services) == 1 and services[0].get_IsEnabled()
 
     def enable_fw(self, enable):
         edgeGatewayServiceConfiguration = self.me.get_Configuration(
         ).get_EdgeGatewayServiceConfiguration()
-        services = filter(
+        services = list(filter(
             lambda service: service.__class__.__name__ == "FirewallServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if len(services) == 1:
             services[0].set_IsEnabled(enable)
 
@@ -317,9 +317,9 @@ class Gateway(object):
         ).get_EdgeGatewayServiceConfiguration()
         if edgeGatewayServiceConfiguration is None:
             return False
-        services = filter(
+        services = list(filter(
             lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         return len(services) == 1 and services[0].get_IsEnabled()
 
     def add_vpn_service(self, IsEnabled=True):
@@ -333,9 +333,9 @@ class Gateway(object):
     def enable_vpn(self, enable):
         edgeGatewayServiceConfiguration = self.me.get_Configuration(
         ).get_EdgeGatewayServiceConfiguration()
-        services = filter(
+        services = list(filter(
             lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if len(services) == 0:
             vpn_service = self.add_vpn_service(enable)
             return vpn_service
@@ -348,9 +348,9 @@ class Gateway(object):
     def get_vpn_service(self):
         gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
-        service = filter(
+        service = list(filter(
             lambda service: service.__class__.__name__ == "GatewayIpsecVpnServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if service is not None and len(service) > 0:
             return service[0]
 
@@ -549,7 +549,7 @@ class Gateway(object):
             </SyslogServerSettings>
             """ % syslog_server_ip
         # '<SyslogServerSettings><TenantSyslogServerSettings><SyslogServerIp>%s</SyslogServerIp></TenantSyslogServerSettings></SyslogServerSettings>' % syslog_server_ip
-        # link = filter(lambda link: link.get_type() == content_type, self.me.get_Link())
+        # link = list(filter(lambda link: link.get_type() == content_type, self.me.get_Link()))
         self.response = Http.post(
             self.me.href +
             '/action/configureSyslogServerSettings',
@@ -564,9 +564,9 @@ class Gateway(object):
     def _getFirewallService(self):
         gatewayConfiguration = self.me.get_Configuration()
         edgeGatewayServiceConfiguration = gatewayConfiguration.get_EdgeGatewayServiceConfiguration()
-        return filter(
+        return list(filter(
             lambda service: service.__class__.__name__ == "FirewallServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())[0]
+            edgeGatewayServiceConfiguration.get_NetworkService()))[0]
 
     def get_fw_rules(self):
         return self._getFirewallService().get_FirewallRule()
@@ -635,9 +635,9 @@ class Gateway(object):
     def _getDhcpService(self):
         edgeGatewayServiceConfiguration = self.me.get_Configuration(
         ).get_EdgeGatewayServiceConfiguration()
-        dhcpServices = filter(
+        dhcpServices = list(filter(
             lambda service: service.__class__.__name__ == "GatewayDhcpServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if len(dhcpServices) > 0:
             return dhcpServices[0]
 
@@ -655,9 +655,9 @@ class Gateway(object):
     def enable_dhcp(self, enable):
         edgeGatewayServiceConfiguration = self.me.get_Configuration(
         ).get_EdgeGatewayServiceConfiguration()
-        services = filter(
+        services = list(filter(
             lambda service: service.__class__.__name__ == "GatewayDhcpServiceType",
-            edgeGatewayServiceConfiguration.get_NetworkService())
+            edgeGatewayServiceConfiguration.get_NetworkService()))
         if len(services) == 0:
             dhcpService = self.add_dhcp_service(enable)
             return dhcpService
@@ -679,9 +679,9 @@ class Gateway(object):
         if not max_lease:
             max_lease = MAX_LEASE
         gatewayConfiguration = self.me.get_Configuration()
-        network = filter(
+        network = list(filter(
             lambda interface: interface.get_Name() == network_name,
-            gatewayConfiguration.get_GatewayInterfaces().get_GatewayInterface())[0].get_Network()
+            gatewayConfiguration.get_GatewayInterfaces().get_GatewayInterface()))[0].get_Network()
         network.set_type("application/vnd.vmware.vcloud.orgVdcNetwork+xml")
 
         new_pool = DhcpPoolServiceType(

@@ -39,9 +39,9 @@ class Task(object):
 
     def get_tasks(self, status=statuses[0]):
         if self.vcloud_session and self.vcloud_session.organization:
-            refs = filter(lambda ref:
+            refs = list(filter(lambda ref:
                     ref.type_ == 'application/vnd.vmware.vcloud.tasksList+xml',
-                    self.vcloud_session.organization.Link)
+                    self.vcloud_session.organization.Link))
             if len(refs) == 1:
                 self.response = Http.get(refs[0].href,
                     headers=self.vcloud_session.get_vcloud_headers(),

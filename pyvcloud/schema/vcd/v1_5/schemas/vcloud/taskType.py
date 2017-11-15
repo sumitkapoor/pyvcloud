@@ -38,6 +38,11 @@ import re as re_
 import base64
 import datetime as datetime_
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 etree_ = None
 Verbose_import_ = False
 (
@@ -4712,9 +4717,19 @@ Usage: python <Parser>.py [ -s ] <in_xml_file>
 
 
 def usage():
-    print USAGE_TEXT
+    print (USAGE_TEXT)
     sys.exit(1)
 
+def getXMLString(inString):
+    data = inString
+    try:
+        from StringIO import StringIO
+        data = StringIO(inString)
+    except ImportError:
+        from io import BytesIO
+        data = BytesIO(inString)
+
+    return data
 
 def get_root_tag(node):
     tag = Tag_pattern_.match(node.tag).groups()[-1]
@@ -4768,8 +4783,7 @@ def parseEtree(inFileName, silence=False):
 
 
 def parseString(inString, silence=False):
-    from StringIO import StringIO
-    doc = parsexml_(StringIO(inString))
+    doc = parsexml_(getXMLString(inString))
     rootNode = doc.getroot()
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:

@@ -1,5 +1,7 @@
-from StringIO import StringIO
-
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
 
 def convertPythonObjToStr(
         obj,

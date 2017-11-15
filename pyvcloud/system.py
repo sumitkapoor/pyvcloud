@@ -33,7 +33,7 @@ class System(object):
 
     def get_orgs(self):
         content_type = 'application/vnd.vmware.vcloud.orgList+xml'
-        link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
+        link = list(filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link()))
         orgs = []
         self.response = Http.get(link[0].get_href(), headers=self.vcloud_session.get_vcloud_headers(),
                                  verify=self.verify, logger=self.logger)
@@ -50,7 +50,7 @@ class System(object):
 
     def get_extensions(self):
         content_type = 'application/vnd.vmware.admin.vmwExtension+xml'
-        link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
+        link = list(filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link()))
         self.response = Http.get(link[0].get_href() + '/service/query', headers=self.vcloud_session.get_vcloud_headers(),
                                  verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
@@ -61,7 +61,7 @@ class System(object):
 
     def get_extension(self, name):
         content_type = 'application/vnd.vmware.admin.vmwExtension+xml'
-        link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
+        link = list(filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link()))
         self.response = Http.get(link[0].get_href() + '/service/query?pageSize=' + '1024',
                                  headers=self.vcloud_session.get_vcloud_headers(),
                                  verify=self.verify, logger=self.logger)
@@ -101,7 +101,7 @@ class System(object):
         </vmext:Service>
         """ % (name, namespace, routing_key, api_filters)
         content_type = 'application/vnd.vmware.admin.vmwExtension+xml'
-        link = filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link())
+        link = list(filter(lambda link: link.get_type() == content_type, self.vcloud_session.get_Link()))
         self.response = Http.post(link[0].get_href() + '/service', headers=self.vcloud_session.get_vcloud_headers(),
                                   data=extension_metadata,
                                   verify=self.verify, logger=self.logger)

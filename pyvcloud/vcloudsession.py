@@ -16,7 +16,6 @@
 # coding: utf-8
 
 import requests
-import StringIO
 import json
 import logging
 from pyvcloud.schema.vcd.v1_5.schemas.vcloud import sessionType, organizationType
@@ -92,9 +91,9 @@ class VCS(object):
                 self.token = self.response.headers["x-vcloud-authorization"]
                 self.session = sessionType.parseString(
                     self.response.content, True)
-                self.org_url = filter(
+                self.org_url = list(filter(
                     lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml',
-                    self.session.Link)[0].href
+                    self.session.Link))[0].href
                 return True
             else:
                 return False
@@ -114,7 +113,7 @@ class VCS(object):
         self.response = Http.get(self.url, headers=headers, verify=self.verify, logger=self.logger)
         if self.response.status_code == requests.codes.ok:
             self.session = sessionType.parseString(self.response.content, True)
-            self.org_url = filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', self.session.Link)[0].href
+            self.org_url = list(filter(lambda link: link.type_ == 'application/vnd.vmware.vcloud.org+xml', self.session.Link))[0].href
             self.username = self.session.get_user()
             self.user_id = self.session.get_userId().split(':')[-1]
             self.org = self.session.get_org()
